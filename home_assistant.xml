@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Home" model="Assistant" alias="Home Assistant" device_class="Lighting_controller" rpm_xml_version="1.9" minimum_component_engine_version="9.2">
+<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Home" model="Assistant" alias="Home Assistant" device_class="Lighting_controller" rpm_xml_version="1.10" minimum_component_engine_version="9.2">
    <notes />
    <component_properties />
    <control_interfaces preferred="ip">
@@ -69,14 +69,14 @@
       </resource_component_actions>
       <resource_component_actions resource_type="ENV_LIGHTINGCONTROLLER_SOURCE">
          <action name="SwitchOn">
-            <action_argument name="Address1" note="" />
+            <action_argument name="Address1" note="Entity ID" />
             <action_argument name="Address2" note="" />
             <action_argument name="Address3" note="" />
             <action_argument name="Address4" note="" />
             <action_argument name="Address5" note="" />
             <action_argument name="Address6" note="" />
             <command_interface interface="ip">
-               <command response_required="yes">
+               <command response_required="no">
                   <command_string http_request_type="POST" type="character">api/services/light/turn_on</command_string>
                   <http_header name="Content-Type">application/json</http_header>
                   <parameter_list>
@@ -84,42 +84,19 @@
                      <parameter parameter_data_type="character" isHttpBody="true" action_argument="Address1" />
                      <parameter parameter_data_type="character" isHttpBody="true">"}</parameter>
                   </parameter_list>
-                  <response_codes>
-                     <rspmessage status="success" name="brightnessSet">
-                        <constant type="character">200</constant>
-                        <constant type="character">[{"success":{"/lights/</constant>
-                        <data type="character" terminator_type="character" terminator="/">
-                           <update state="CurrentLightNumber" type="integer" />
-                        </data>
-                        <constant type="character">state/on":</constant>
-                        <data type="character" terminator_type="character" terminator="}}]">
-                           <data_map match_required="yes">
-                              <map key="true">
-                                 <update state="LightPowerStatus" type="string">ON</update>
-                                 <update state="isLightOn" type="boolean">true</update>
-                              </map>
-                              <map key="false">
-                                 <update state="LightPowerStatus" type="string">OFF</update>
-                                 <update state="isLightOn" type="boolean">false</update>
-                              </map>
-                           </data_map>
-                        </data>
-                        <append_data_to_state_names state="CurrentLightNumber" />
-                     </rspmessage>
-                  </response_codes>
                   <delay ms_delay="10" />
                </command>
             </command_interface>
          </action>
          <action name="SwitchOff">
-            <action_argument name="Address1" note="" />
+            <action_argument name="Address1" note="Entity ID" />
             <action_argument name="Address2" note="" />
             <action_argument name="Address3" note="" />
             <action_argument name="Address4" note="" />
             <action_argument name="Address5" note="" />
             <action_argument name="Address6" note="" />
             <command_interface interface="ip">
-               <command response_required="yes">
+               <command response_required="no">
                   <command_string http_request_type="POST" type="character">api/services/light/turn_off</command_string>
                   <http_header name="Content-Type">application/json</http_header>
                   <parameter_list>
@@ -127,34 +104,44 @@
                      <parameter parameter_data_type="character" isHttpBody="true" action_argument="Address1" />
                      <parameter parameter_data_type="character" isHttpBody="true">"}</parameter>
                   </parameter_list>
-                  <response_codes>
-                     <rspmessage status="success" name="brightnessSet">
-                        <constant type="character">200</constant>
-                        <constant type="character">[{"success":{"/lights/</constant>
-                        <data type="character" terminator_type="character" terminator="/">
-                           <update state="CurrentLightNumber" type="integer" />
-                        </data>
-                        <constant type="character">state/on":</constant>
-                        <data type="character" terminator_type="character" terminator="}}]">
-                           <data_map match_required="yes">
-                              <map key="true">
-                                 <update state="LightPowerStatus" type="string">ON</update>
-                                 <update state="isLightOn" type="boolean">true</update>
-                              </map>
-                              <map key="false">
-                                 <update state="LightPowerStatus" type="string">OFF</update>
-                                 <update state="isLightOn" type="boolean">false</update>
-                                 <update state="DT_GroupBrightness" type="integer">0</update>
-                              </map>
-                           </data_map>
-                        </data>
-                        <append_data_to_state_names state="CurrentLightNumber" />
-                     </rspmessage>
-                  </response_codes>
                   <delay ms_delay="10" />
                </command>
             </command_interface>
          </action>
+         <action name="DimmerSet">
+            <action_argument name="Address1" note="Entity ID" />
+            <action_argument name="Address2" note="not used" />
+            <action_argument name="Address3" note="not used" />
+            <action_argument name="Address4" note="not used" />
+            <action_argument name="Address5" note="not used" />
+            <action_argument name="Address6" note="not used" />
+            <action_argument name="DimmerLevel" note="Select the Dimmer Level 0 - 100" />
+            <action_argument name="DelayTime" note="not used" />
+            <action_argument name="FadeTime" note="not used" />
+            <command_interface interface="ip">
+               <command response_required="no">
+                  <command_string http_request_type="POST" type="character">api/services/light/turn_on</command_string>
+                  <http_header name="Content-Type">application/json</http_header>
+                  <parameter_list>
+                     <parameter parameter_data_type="character" action_argument="DimmerLevel" />
+                     <parameter parameter_data_type="character" isHttpBody="true">{"entity_id": "</parameter>
+                     <parameter parameter_data_type="character" isHttpBody="true" action_argument="Address1" />
+                     <parameter parameter_data_type="character" isHttpBody="true">", "brightness_pct": "</parameter>
+                     <parameter parameter_data_type="character" isHttpBody="true" action_argument="DimmerLevel" />
+                     <parameter parameter_data_type="character" isHttpBody="true">"}</parameter>
+                  </parameter_list>
+                  <delay ms_delay="500" />
+               </command>
+            </command_interface>
+         </action>
+         <entity address_components="1" name="Dimmer Group">
+            <slider_representation>
+               <press_action name="DimmerSet" />
+               <valueSource name="DimmerLevel">
+                  <unique_identifier address_component="1" name="DimmerLevel" />
+               </valueSource>
+            </slider_representation>
+         </entity>
          <entity name="Switch" address_components="1">
             <toggle_button_representation>
                <release_action name="SwitchOn" />

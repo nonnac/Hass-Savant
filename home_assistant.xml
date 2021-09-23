@@ -25,6 +25,10 @@
             <resource resource_type="ENV_LIGHTINGCONTROLLER_SOURCE"/>
             <resource resource_type="ENV_FANCONTROLLER_SOURCE"/>
         </internal>
+        <internal name_on_component="DoorLockController">
+            <environmental_media></environmental_media>
+            <resource resource_type="ENV_DOOR_LOCK_SOURCE"></resource>
+        </internal>
         <internal name_on_component="GarageDoorController">
             <environmental_media></environmental_media>
             <resource resource_type="ENV_GARAGE_DOOR_SOURCE"></resource>
@@ -57,6 +61,7 @@
                 <action_argument name="Address6" note="not used"/>
                 <action_argument name="FanSpeed" note="Fan Speed 0 - 3"/>
                 <command_interface interface="ip">
+                    <!-- Can sequence multiple commands, maybe to turn it off when FanSpeed is 0? -->
                     <command response_required="no">
                         <command_string http_request_type="POST" type="character">api/services/fan/turn_on</command_string>
                         <http_header name="Content-Type">application/json</http_header>
@@ -187,6 +192,47 @@
                 <query_status_with_action name="UpdateIfLightIsOff" period_ms="60000">
                     <with_arg name="Address1" address_component="1" format="%d"/>
                 </query_status_with_action>
+            </entity>
+        </resource_component_actions>
+
+        <resource_component_actions resource_type="ENV_DOOR_LOCK_SOURCE">
+            <action name="LockDoorLock">
+                <action_argument name="DoorLockAddress" note="Device Number"/>
+                <action_argument name="DoorLockAddress2" note="not used"/>
+                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Locked</update_state_variable>
+                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Locked</update_state_variable>
+                <command_interface interface="ip">
+                    <command_string http_request_type="POST" type="character">api/services/lock/lock</command_string>
+                    <http_header name="Content-Type">application/json</http_header>
+                    <parameter_list>
+                        <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
+                        <parameter parameter_data_type="character" isHttpBody="true" action_argument="DoorLockAddress"></parameter>
+                        <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
+                    </parameter_list>
+                    <delay ms_delay="500"/>
+                </command_interface>
+            </action>
+            <action name="UnlockDoorLock">
+                <action_argument name="DoorLockAddress" note="Device Number"/>
+                <action_argument name="DoorLockAddress2" note="not used"/>
+                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Unlocked</update_state_variable>
+                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Unlocked</update_state_variable>
+                <command_interface interface="ip">
+                    <command_string http_request_type="POST" type="character">api/services/lock/unlock</command_string>
+                    <http_header name="Content-Type">application/json</http_header>
+                    <parameter_list>
+                        <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
+                        <parameter parameter_data_type="character" isHttpBody="true" action_argument="DoorLockAddress"></parameter>
+                        <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
+                    </parameter_list>
+                    <delay ms_delay="500"/>
+                </command_interface>
+            </action>
+            <entity name="Lock" address_components="1">
+                <toggle_button_representation>
+                    <release_action name="UnlockDoorLock"/>
+                    <toggle_release_action name="LockDoorLock"/>
+                </toggle_button_representation>
             </entity>
         </resource_component_actions>
 

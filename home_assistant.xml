@@ -3,10 +3,10 @@
     <notes>
 
     </notes>
-    
+
     <component_properties>
     </component_properties>
-    
+
     <control_interfaces preferred="ip">
         <ip port="8123" response_time_length_ms="500" reconnect_timeout_ms="10" protocol="http">
             <http_header name="Authorization">Bearer TOKEN</http_header>
@@ -23,7 +23,7 @@
         <internal name_on_component="Lighting Controller">
             <environmental_media></environmental_media>
             <resource resource_type="ENV_LIGHTINGCONTROLLER_SOURCE"/>
-			<resource resource_type="ENV_FANCONTROLLER_SOURCE"/>
+            <resource resource_type="ENV_FANCONTROLLER_SOURCE"/>
         </internal>
         <internal name_on_component="GarageDoorController">
             <environmental_media></environmental_media>
@@ -129,40 +129,40 @@
                 </command_interface>
             </action>
 
-			<action name="DimmerSet">
+            <action name="DimmerSet">
                 <action_argument name="Address1" note="Entity ID"/>
-				<action_argument name="Address2" note="not used"></action_argument>
-				<action_argument name="Address3" note="not used"></action_argument>
-				<action_argument name="Address4" note="not used"></action_argument>
-				<action_argument name="Address5" note="not used"></action_argument>
-				<action_argument name="Address6" note="not used"></action_argument>
-				<action_argument name="DimmerLevel" note="Select the Dimmer Level 0 - 100"></action_argument>
-				<action_argument name="DelayTime" note="not used"></action_argument>
-				<action_argument name="FadeTime" note="not used"></action_argument>
-				<command_interface interface="ip">
-					<command response_required="no">
+                <action_argument name="Address2" note="not used"></action_argument>
+                <action_argument name="Address3" note="not used"></action_argument>
+                <action_argument name="Address4" note="not used"></action_argument>
+                <action_argument name="Address5" note="not used"></action_argument>
+                <action_argument name="Address6" note="not used"></action_argument>
+                <action_argument name="DimmerLevel" note="Select the Dimmer Level 0 - 100"></action_argument>
+                <action_argument name="DelayTime" note="not used"></action_argument>
+                <action_argument name="FadeTime" note="not used"></action_argument>
+                <command_interface interface="ip">
+                    <command response_required="no">
                         <command_string http_request_type="POST" type="character">api/services/light/turn_on</command_string>
                         <http_header name="Content-Type">application/json</http_header>
                         <parameter_list>
                             <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
                             <parameter parameter_data_type="character" isHttpBody="true" action_argument="Address1"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;, &quot;brightness_pct&quot;: &quot;</parameter>
-							<parameter parameter_data_type="character" isHttpBody="true" action_argument="DimmerLevel"></parameter>
+                            <parameter parameter_data_type="character" isHttpBody="true" action_argument="DimmerLevel"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
                         </parameter_list>
-						<delay ms_delay="500"/>
-					</command>
-				</command_interface>
-			</action>
+                        <delay ms_delay="500"/>
+                    </command>
+                </command_interface>
+            </action>
 
-			<entity address_components="1" name="Dimmer Group">
-				<slider_representation>
-					<press_action name="DimmerSet"></press_action>
-					<valueSource name="DimmerLevel">
-						<unique_identifier address_component="1" name="DimmerLevel"></unique_identifier>
-					</valueSource>
-				</slider_representation>
-			</entity>
+            <entity address_components="1" name="Dimmer Group">
+                <slider_representation>
+                    <press_action name="DimmerSet"></press_action>
+                    <valueSource name="DimmerLevel">
+                        <unique_identifier address_component="1" name="DimmerLevel"></unique_identifier>
+                    </valueSource>
+                </slider_representation>
+            </entity>
 
             <entity name="Switch" address_components="1">
                 <toggle_button_representation>
@@ -196,7 +196,7 @@
                 <action_argument name="GarageDoorAddress2" note="not used"/>
                 <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Closed</update_state_variable>
                 <command_interface interface="ip">
-					<command response_required="no">
+                    <command response_required="no">
                         <command_string http_request_type="POST" type="character">api/services/cover/close_cover</command_string>
                         <http_header name="Content-Type">application/json</http_header>
                         <parameter_list>
@@ -204,8 +204,8 @@
                             <parameter parameter_data_type="character" isHttpBody="true" action_argument="GarageDoorAddress"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
                         </parameter_list>
-						<delay ms_delay="500"/>
-					</command>
+                        <delay ms_delay="500"/>
+                    </command>
                 </command_interface>
             </action>
 
@@ -214,7 +214,7 @@
                 <action_argument name="GarageDoorAddress2" note="not used"/>
                 <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Open</update_state_variable>
                 <command_interface interface="ip">
-					<command response_required="no">
+                    <command response_required="no">
                         <command_string http_request_type="POST" type="character">api/services/cover/open_cover</command_string>
                         <http_header name="Content-Type">application/json</http_header>
                         <parameter_list>
@@ -222,8 +222,8 @@
                             <parameter parameter_data_type="character" isHttpBody="true" action_argument="GarageDoorAddress"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
                         </parameter_list>
-						<delay ms_delay="500"/>
-					</command>
+                        <delay ms_delay="500"/>
+                    </command>
                 </command_interface>
             </action>
 

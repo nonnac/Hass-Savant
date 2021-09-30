@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Home" model="Assistant" alias="Home Assistant" device_class="Lighting_controller" rpm_xml_version="1.11" minimum_component_engine_version="9.2">
+<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Home" model="Assistant" alias="Home Assistant" device_class="Lighting_controller" rpm_xml_version="1.34" minimum_component_engine_version="9.2">
     <notes>
 
     </notes>
@@ -8,7 +8,7 @@
     </component_properties>
 
     <control_interfaces preferred="ip">
-        <ip port="8123" response_time_length_ms="500" reconnect_timeout_ms="10" protocol="http">
+        <ip port="8123" response_time_length_ms="5000" reconnect_timeout_ms="1000" protocol="http">
             <http_header name="Authorization">Bearer TOKEN</http_header>
         </ip>
     </control_interfaces>
@@ -36,9 +36,12 @@
     </media_interfaces>
 
     <state_variable_list>
-        <state_variable name="IsDoorLocked" owning_logical_component="Security_system" state_center_type="boolean" state_center_binding="IsDoorLocked">0</state_variable>
-        <dynamic_state_variable name="DoorLockStatus" owning_logical_component="Security_system" state_center_type="string" state_center_binding="DoorLockStatus"></dynamic_state_variable>
-        <dynamic_state_variable name="GarageDoorStatus" owning_logical_component="Security_system" state_center_type="string" state_center_binding="GarageDoorStatus"></dynamic_state_variable>
+        <dynamic_state_variable name="DoorLockStatus" owning_logical_component="Home Assistant" state_center_type="string" state_center_binding="DoorLockStatus"></dynamic_state_variable>
+        <dynamic_state_variable name="IsDoorLocked" owning_logical_component="Home Assistant" state_center_type="boolean" state_center_binding="IsDoorLocked">false</dynamic_state_variable>
+
+        <dynamic_state_variable name="GarageDoorStatus" owning_logical_component="Home Assistant" state_center_type="string" state_center_binding="GarageDoorStatus"></dynamic_state_variable>
+
+        <dynamic_state_variable name="DimmerLevel" owning_logical_component="Home Assistant" state_center_type="integer" state_center_binding="DimmerLevel" min_value="0" max_value="255"></dynamic_state_variable>
 
         <state_variable name="FanSet_0" owning_logical_component="Home Assistant" user_editable="yes" note="Fan Speed Off">0</state_variable>
         <state_variable name="FanSet_1" owning_logical_component="Home Assistant" user_editable="yes" note="Fan Speed Low">2</state_variable>
@@ -50,6 +53,113 @@
         <implementation>
             <internal name_on_component="Lighting Controller"></internal>
         </implementation>
+
+        <status_messages>
+            <status_message name="DoorLockStatusMessage">
+                <!--
+                    Example message.
+
+                    {"entity_id": "lock.garage_door", "state": "locked", "attributes": {"battery_level": 90, "friendly_name": "Garage Door"}, "last_changed": "2021-09-29T22:14:10.122864+00:00", "last_updated": "2021-09-29T22:14:10.122864+00:00", "context": {"id": "9a47194a56f53617d3def34584cd92f8", "parent_id": null, "user_id": null}}
+                -->
+                <root_object name="none" matches_required="all" format="json">
+                    <values path="//entity_id" matches_required="at_least_one">
+                        <update state="EntityID" type="string"></update>
+                    </values>
+                    <values path="//state" matches_required="at_least_one">
+                        <value_map match_required="yes">
+                            <map key="locked">
+                                <update state="DoorLockStatus" type="string">Locked</update>
+                                <update state="IsDoorLocked" type="boolean">true</update>
+                            </map>
+                            <map key="unlocked">
+                                <update state="DoorLockStatus" type="string">Unlocked</update>
+                                <update state="IsDoorLocked" type="boolean">false</update>
+                            </map>
+                        </value_map>
+                    </values>
+                </root_object>
+                <append_data_to_state_names state="EntityID" note="Entity ID"/>
+            </status_message>
+
+            <status_message name="GarageDoorStatusMessage">
+                <!--
+                    Example message.
+
+                    {"entity_id": "lock.garage_door", "state": "locked", "attributes": {"battery_level": 90, "friendly_name": "Garage Door"}, "last_changed": "2021-09-29T22:14:10.122864+00:00", "last_updated": "2021-09-29T22:14:10.122864+00:00", "context": {"id": "9a47194a56f53617d3def34584cd92f8", "parent_id": null, "user_id": null}}
+                -->
+                <root_object name="none" matches_required="all" format="json">
+                    <values path="//entity_id" matches_required="at_least_one">
+                        <update state="EntityID" type="string"></update>
+                    </values>
+                    <values path="//state" matches_required="at_least_one">
+                        <value_map match_required="yes">
+                            <map key="closed">
+                                <update state="GarageDoorStatus" type="string">Closed</update>
+                            </map>
+                            <map key="open">
+                                <update state="GarageDoorStatus" type="string">Open</update>
+                            </map>
+                        </value_map>
+                    </values>
+                </root_object>
+                <append_data_to_state_names state="EntityID" note="Entity ID"/>
+            </status_message>
+
+            <status_message name="LightStatusMessage">
+                <!--
+                    Example message.
+
+                    {"entity_id": "light.master_bedroom_main_lights", "state": "on", "attributes": {"supported_color_modes": ["brightness"], "color_mode": "brightness", "brightness": 53, "device_id": "3", "zone_id": "1", "friendly_name": "Master Bedroom_Main Lights", "supported_features": 33}, "last_changed": "2021-09-30T06:02:36.862424+00:00", "last_updated": "2021-09-30T06:02:50.412270+00:00", "context": {"id": "9b2376792d947a907e9969ccf35b71b8", "parent_id": null, "user_id": "ceee07c379604714b7d725ef957f81fd"}}
+                -->
+                <root_object name="none" matches_required="all" format="json">
+                    <values path="//entity_id" matches_required="at_least_one">
+                        <update state="EntityID" type="string"></update>
+                    </values>
+                    <values path="//state" matches_required="at_least_one">
+                        <value_map match_required="yes">
+                            <map key="on">
+                                <!-- 0-255 scale -->
+                                <update state="DimmerLevel" type="integer" />
+                                <update state="IsDimmerOn" type="boolean">true</update>
+                                <update state="LightPowerStatus" type="string">ON</update>
+                                <update state="isLightOn" type="boolean">true</update>
+                            </map>
+                            <map key="off">
+                                <update state="DimmerLevel" type="integer" />
+                                <update state="IsDimmerOn" type="boolean">false</update>
+                                <update state="LightPowerStatus" type="string">OFF</update>
+                                <update state="isLightOn" type="boolean">false</update>
+                            </map>
+                        </value_map>
+                    </values>
+                </root_object>
+                <append_data_to_state_names state="EntityID" note="Entity ID"/>
+            </status_message>
+
+            <status_message name="FanStatusMessage">
+                <!--
+                    Example message.
+
+                    {"entity_id": "fan.master_bedroom_fan", "state": "on", "attributes": {"speed_list": ["off", "1", "2", "3", "4", "5", "6", "7"], "preset_modes": [], "direction": "forward", "oscillating": false, "speed": "7", "percentage": 100, "percentage_step": 14.285714285714286, "preset_mode": null, "autocomfort": "OFF", "smartmode": "OFF", "room": "Master Bedroom", "friendly_name": "Master Bedroom Fan", "supported_features": 7}, "last_changed": "2021-09-30T03:34:49.995068+00:00", "last_updated": "2021-09-30T03:34:50.010272+00:00", "context": {"id": "e7b2d16f1b722574b04f3f75f0815e31", "parent_id": null, "user_id": null}}
+                -->
+                <root_object name="none" matches_required="all" format="json">
+                    <values path="//entity_id" matches_required="at_least_one">
+                        <update state="EntityID" type="string"></update>
+                    </values>
+                    <values path="//state" matches_required="at_least_one">
+                        <value_map match_required="yes">
+                            <map key="on">
+                                <update state="GarageDoorStatus" type="string">Closed</update>
+                            </map>
+                            <map key="off">
+                                <update state="GarageDoorStatus" type="string">Open</update>
+                            </map>
+                        </value_map>
+                    </values>
+                </root_object>
+                <append_data_to_state_names state="EntityID" note="Entity ID"/>
+            </status_message>
+        </status_messages>
 
         <resource_component_actions resource_type="ENV_FANCONTROLLER_SOURCE">
             <action name="FanSet">
@@ -85,7 +195,7 @@
                         <unique_identifier name="DeviceID" address_component="1"/>
                     </valueSource>
                 </slider_representation>
-                <query_status_with_action name="QueryFanState" period_ms="10000">
+                <query_status_with_action name="QueryFanState" period_ms="30000">
                     <with_arg name="Address1" address_component="1" format="%s"/>
                 </query_status_with_action>
             </entity>
@@ -108,7 +218,7 @@
                             <parameter parameter_data_type="character" isHttpBody="true" action_argument="Address1"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
                         </parameter_list>
-                        <delay ms_delay="10"/>
+                        <delay ms_delay="250" />
                     </command>
                 </command_interface>
             </action>
@@ -129,7 +239,7 @@
                             <parameter parameter_data_type="character" isHttpBody="true" action_argument="Address1"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
                         </parameter_list>
-                        <delay ms_delay="10"/>
+                        <delay ms_delay="250" />
                     </command>
                 </command_interface>
             </action>
@@ -155,7 +265,7 @@
                             <parameter parameter_data_type="character" isHttpBody="true" action_argument="DimmerLevel"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
                         </parameter_list>
-                        <delay ms_delay="500"/>
+                        <delay ms_delay="250" />
                     </command>
                 </command_interface>
             </action>
@@ -183,64 +293,64 @@
                         <unique_identifier name="CurrentLightNumber" address_component="1"/>
                     </toggleOnUsingState>
                 </toggle_button_representation>
-                <query_status_with_action name="QueryLightState" period_ms="10000">
+                <query_status_with_action name="QueryLightState" period_ms="30000">
                     <with_arg name="Address1" address_component="1" format="%s"/>
-                </query_status_with_action>
-                <query_status_with_action name="UpdateIfLightIsOn" period_ms="60000">
-                    <with_arg name="Address1" address_component="1" format="%d"/>
-                </query_status_with_action>
-                <query_status_with_action name="UpdateIfLightIsOff" period_ms="60000">
-                    <with_arg name="Address1" address_component="1" format="%d"/>
                 </query_status_with_action>
             </entity>
         </resource_component_actions>
 
         <resource_component_actions resource_type="ENV_DOOR_LOCK_SOURCE">
             <action name="LockDoorLock">
-                <action_argument name="DoorLockAddress" note="Device Number"/>
-                <action_argument name="DoorLockAddress2" note="not used"/>
-                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Locked</update_state_variable>
-                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Locked</update_state_variable>
+                <action_argument name="DoorLockAddress" note="Entity ID" />
+                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Locked</update_state_variable>
+                <update_state_variable name="IsDoorLocked_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress" type="boolean">true</update_state_variable>
                 <command_interface interface="ip">
-                    <command_string http_request_type="POST" type="character">api/services/lock/lock</command_string>
-                    <http_header name="Content-Type">application/json</http_header>
-                    <parameter_list>
-                        <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
-                        <parameter parameter_data_type="character" isHttpBody="true" action_argument="DoorLockAddress"></parameter>
-                        <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
-                    </parameter_list>
-                    <delay ms_delay="500"/>
+                    <command response_required="no">
+                        <command_string http_request_type="POST" type="character">api/services/lock/lock</command_string>
+                        <http_header name="Content-Type">application/json</http_header>
+                        <parameter_list>
+                            <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
+                            <parameter parameter_data_type="character" isHttpBody="true" action_argument="DoorLockAddress"></parameter>
+                            <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
+                        </parameter_list>
+                        <delay ms_delay="500" />
+                    </command>
                 </command_interface>
             </action>
+
             <action name="UnlockDoorLock">
-                <action_argument name="DoorLockAddress" note="Device Number"/>
-                <action_argument name="DoorLockAddress2" note="not used"/>
-                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Unlocked</update_state_variable>
-                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Unlocked</update_state_variable>
+                <action_argument name="DoorLockAddress" note="Entity ID" />
+                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Unlocked</update_state_variable>
+                <update_state_variable name="IsDoorLocked_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress" type="boolean">false</update_state_variable>
                 <command_interface interface="ip">
-                    <command_string http_request_type="POST" type="character">api/services/lock/unlock</command_string>
-                    <http_header name="Content-Type">application/json</http_header>
-                    <parameter_list>
-                        <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
-                        <parameter parameter_data_type="character" isHttpBody="true" action_argument="DoorLockAddress"></parameter>
-                        <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
-                    </parameter_list>
-                    <delay ms_delay="500"/>
+                    <command response_required="no">
+                        <command_string http_request_type="POST" type="character">api/services/lock/unlock</command_string>
+                        <http_header name="Content-Type">application/json</http_header>
+                        <parameter_list>
+                            <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
+                            <parameter parameter_data_type="character" isHttpBody="true" action_argument="DoorLockAddress"></parameter>
+                            <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
+                        </parameter_list>
+                        <delay ms_delay="500" />
+                    </command>
                 </command_interface>
             </action>
+
             <entity name="Lock" address_components="1">
                 <toggle_button_representation>
                     <release_action name="UnlockDoorLock"/>
                     <toggle_release_action name="LockDoorLock"/>
                 </toggle_button_representation>
+                <query_status_with_action name="QueryDoorLockState" period_ms="30000">
+                    <with_arg name="DoorLockAddress" address_component="1" format="%s"/>
+                </query_status_with_action>
             </entity>
         </resource_component_actions>
 
         <resource_component_actions resource_type="ENV_GARAGE_DOOR_SOURCE">
             <action name="CloseGarageDoor">
-                <action_argument name="GarageDoorAddress" note="Device Number"/>
-                <action_argument name="GarageDoorAddress2" note="not used"/>
-                <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Closed</update_state_variable>
+                <action_argument name="GarageDoorAddress" note="Entity ID"/>
+                <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Closed</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
                         <command_string http_request_type="POST" type="character">api/services/cover/close_cover</command_string>
@@ -250,15 +360,13 @@
                             <parameter parameter_data_type="character" isHttpBody="true" action_argument="GarageDoorAddress"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
                         </parameter_list>
-                        <delay ms_delay="500"/>
                     </command>
                 </command_interface>
             </action>
 
             <action name="OpenGarageDoor">
-                <action_argument name="GarageDoorAddress" note="Device Number"/>
-                <action_argument name="GarageDoorAddress2" note="not used"/>
-                <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Open</update_state_variable>
+                <action_argument name="GarageDoorAddress" note="Entity ID"/>
+                <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Open</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
                         <command_string http_request_type="POST" type="character">api/services/cover/open_cover</command_string>
@@ -268,7 +376,6 @@
                             <parameter parameter_data_type="character" isHttpBody="true" action_argument="GarageDoorAddress"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
                         </parameter_list>
-                        <delay ms_delay="500"/>
                     </command>
                 </command_interface>
             </action>
@@ -278,46 +385,51 @@
                     <release_action name="OpenGarageDoor"></release_action>
                     <toggle_release_action name="CloseGarageDoor"></toggle_release_action>
                 </toggle_button_representation>
+                <query_status_with_action name="QueryGarageDoorState" period_ms="30000">
+                    <with_arg name="GarageDoorAddress" address_component="1" format="%s"/>
+                </query_status_with_action>
             </entity>
         </resource_component_actions>
 
         <custom_component_actions>
             <action name="QueryLightState">
-                <action_argument name="Address1" note="Entity ID"/>
-                <action_argument name="Address2" note="not used"/>
-                <action_argument name="Address3" note="not used"/>
-                <action_argument name="Address4" note="not used"/>
-                <action_argument name="Address5" note="not used"/>
-                <action_argument name="Address6" note="not used"/>
-                <update_state_variable name="CurrentLightNumber" update_type="set" update_source="action_argument">Address1</update_state_variable>
+                <action_argument name="Address1" note="Entity ID" />
                 <command_interface interface="ip">
-                    <command response_required="yes">
+                    <command response_required="no">
                         <http_header name="Content-Type">application/json</http_header>
                         <command_string http_request_type="GET" type="character">api/states/</command_string>
                         <parameter_list>
-                            <parameter parameter_data_type="character" isHttpBody="false" action_argument="Address1"/>
+                            <parameter parameter_data_type="character" isHttpBody="false" action_argument="Address1" />
                         </parameter_list>
-                        <response_codes>
-                            <rspmessage status="success" name="HassLightOn">
-                                <constant type="character">200</constant>
-                                <root_object name="none" matches_required="at_least_one" format="json">
-                                    <values path="//state" matches_required="at_least_one">
-                                        <value_map match_required="yes">
-                                            <map key="off">
-                                                <update state="LightPowerStatus" type="string">OFF</update>
-                                                <update state="isLightOn" type="boolean">false</update>
-                                            </map>
-                                            <map key="on">
-                                                <update state="LightPowerStatus" type="string">ON</update>
-                                                <update state="isLightOn" type="boolean">true</update>
-                                            </map>
-                                        </value_map>
-                                    </values>
-                                </root_object>
-                                <append_data_to_state_names state="CurrentLightNumber"/>
-                            </rspmessage>
-                        </response_codes>
-                        <delay ms_delay="50"/>
+                        <delay ms_delay="250" />
+                    </command>
+                </command_interface>
+            </action>
+
+            <action name="QueryGarageDoorState">
+                <action_argument name="GarageDoorAddress" note="Entity ID"/>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <http_header name="Content-Type">application/json</http_header>
+                        <command_string http_request_type="GET" type="character">api/states/</command_string>
+                        <parameter_list>
+                            <parameter parameter_data_type="character" isHttpBody="false" action_argument="GarageDoorAddress" />
+                        </parameter_list>
+                        <delay ms_delay="250" />
+                    </command>
+                </command_interface>
+            </action>
+
+            <action name="QueryDoorLockState">
+                <action_argument name="DoorLockAddress" note="Entity ID"/>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <http_header name="Content-Type">application/json</http_header>
+                        <command_string http_request_type="GET" type="character">api/states/</command_string>
+                        <parameter_list>
+                            <parameter parameter_data_type="character" isHttpBody="false" action_argument="DoorLockAddress"/>
+                        </parameter_list>
+                        <delay ms_delay="250" />
                     </command>
                 </command_interface>
             </action>
@@ -341,7 +453,7 @@
                             <rspmessage status="success" name="HassLightOn">
                                 <constant type="character">200</constant>
                                 <root_object name="none" matches_required="at_least_one" format="json">
-                                    <values path="//state" matches_required="at_least_one">
+                                    <values path="/state" matches_required="at_least_one">
                                         <value_map match_required="yes">
                                             <map key="off">
                                                 <update state="LightPowerStatus" type="string">OFF</update>

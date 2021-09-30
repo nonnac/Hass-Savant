@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Home" model="Assistant" alias="Home Assistant" device_class="Lighting_controller" rpm_xml_version="1.11" minimum_component_engine_version="9.2">
+<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Home" model="Assistant" alias="Home Assistant" device_class="Lighting_controller" rpm_xml_version="1.27" minimum_component_engine_version="9.2">
     <notes>
 
     </notes>
@@ -36,8 +36,9 @@
     </media_interfaces>
 
     <state_variable_list>
-        <state_variable name="IsDoorLocked" owning_logical_component="Security_system" state_center_type="boolean" state_center_binding="IsDoorLocked">0</state_variable>
+        <!-- <state_variable name="IsDoorLocked" owning_logical_component="Security_system" state_center_type="boolean" state_center_binding="IsDoorLocked">0</state_variable> -->
         <dynamic_state_variable name="DoorLockStatus" owning_logical_component="Security_system" state_center_type="string" state_center_binding="DoorLockStatus"></dynamic_state_variable>
+        <dynamic_state_variable name="IsDoorLocked" owning_logical_component="Security_system" state_center_type="boolean" state_center_binding="IsDoorLocked">false</dynamic_state_variable>
         <dynamic_state_variable name="GarageDoorStatus" owning_logical_component="Security_system" state_center_type="string" state_center_binding="GarageDoorStatus"></dynamic_state_variable>
 
         <state_variable name="FanSet_0" owning_logical_component="Home Assistant" user_editable="yes" note="Fan Speed Off">0</state_variable>
@@ -183,49 +184,47 @@
                         <unique_identifier name="CurrentLightNumber" address_component="1"/>
                     </toggleOnUsingState>
                 </toggle_button_representation>
-                <query_status_with_action name="QueryLightState" period_ms="10000">
+                <query_status_with_action name="QueryLightState" period_ms="30000">
                     <with_arg name="Address1" address_component="1" format="%s"/>
-                </query_status_with_action>
-                <query_status_with_action name="UpdateIfLightIsOn" period_ms="60000">
-                    <with_arg name="Address1" address_component="1" format="%d"/>
-                </query_status_with_action>
-                <query_status_with_action name="UpdateIfLightIsOff" period_ms="60000">
-                    <with_arg name="Address1" address_component="1" format="%d"/>
                 </query_status_with_action>
             </entity>
         </resource_component_actions>
 
         <resource_component_actions resource_type="ENV_DOOR_LOCK_SOURCE">
             <action name="LockDoorLock">
-                <action_argument name="DoorLockAddress" note="Device Number"/>
+                <action_argument name="DoorLockAddress" note="Entity ID" />
                 <action_argument name="DoorLockAddress2" note="not used"/>
-                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Locked</update_state_variable>
-                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Locked</update_state_variable>
+                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Locked</update_state_variable>
+                <update_state_variable name="IsDoorLocked_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress" type="boolean">true</update_state_variable>
                 <command_interface interface="ip">
-                    <command_string http_request_type="POST" type="character">api/services/lock/lock</command_string>
-                    <http_header name="Content-Type">application/json</http_header>
-                    <parameter_list>
-                        <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
-                        <parameter parameter_data_type="character" isHttpBody="true" action_argument="DoorLockAddress"></parameter>
-                        <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
-                    </parameter_list>
-                    <delay ms_delay="500"/>
+                    <command response_required="no">
+                        <command_string http_request_type="POST" type="character">api/services/lock/lock</command_string>
+                        <http_header name="Content-Type">application/json</http_header>
+                        <parameter_list>
+                            <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
+                            <parameter parameter_data_type="character" isHttpBody="true" action_argument="DoorLockAddress"></parameter>
+                            <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
+                        </parameter_list>
+                        <delay ms_delay="500"/>
+                    </command>
                 </command_interface>
             </action>
             <action name="UnlockDoorLock">
-                <action_argument name="DoorLockAddress" note="Device Number"/>
+                <action_argument name="DoorLockAddress" note="Entity ID" />
                 <action_argument name="DoorLockAddress2" note="not used"/>
-                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Unlocked</update_state_variable>
-                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Unlocked</update_state_variable>
+                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Unlocked</update_state_variable>
+                <update_state_variable name="IsDoorLocked_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress" type="boolean">false</update_state_variable>
                 <command_interface interface="ip">
-                    <command_string http_request_type="POST" type="character">api/services/lock/unlock</command_string>
-                    <http_header name="Content-Type">application/json</http_header>
-                    <parameter_list>
-                        <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
-                        <parameter parameter_data_type="character" isHttpBody="true" action_argument="DoorLockAddress"></parameter>
-                        <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
-                    </parameter_list>
-                    <delay ms_delay="500"/>
+                    <command response_required="no">
+                        <command_string http_request_type="POST" type="character">api/services/lock/unlock</command_string>
+                        <http_header name="Content-Type">application/json</http_header>
+                        <parameter_list>
+                            <parameter parameter_data_type="character" isHttpBody="true">{&quot;entity_id&quot;: &quot;</parameter>
+                            <parameter parameter_data_type="character" isHttpBody="true" action_argument="DoorLockAddress"></parameter>
+                            <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
+                        </parameter_list>
+                        <delay ms_delay="500"/>
+                    </command>
                 </command_interface>
             </action>
             <entity name="Lock" address_components="1">
@@ -233,14 +232,16 @@
                     <release_action name="UnlockDoorLock"/>
                     <toggle_release_action name="LockDoorLock"/>
                 </toggle_button_representation>
+                <query_status_with_action name="QueryDoorLockState" period_ms="30000">
+                    <with_arg name="DoorLockAddress" address_component="1" format="%s"/>
+                </query_status_with_action>
             </entity>
         </resource_component_actions>
 
         <resource_component_actions resource_type="ENV_GARAGE_DOOR_SOURCE">
             <action name="CloseGarageDoor">
                 <action_argument name="GarageDoorAddress" note="Device Number"/>
-                <action_argument name="GarageDoorAddress2" note="not used"/>
-                <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Closed</update_state_variable>
+                <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Closed</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
                         <command_string http_request_type="POST" type="character">api/services/cover/close_cover</command_string>
@@ -250,15 +251,13 @@
                             <parameter parameter_data_type="character" isHttpBody="true" action_argument="GarageDoorAddress"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
                         </parameter_list>
-                        <delay ms_delay="500"/>
                     </command>
                 </command_interface>
             </action>
 
             <action name="OpenGarageDoor">
                 <action_argument name="GarageDoorAddress" note="Device Number"/>
-                <action_argument name="GarageDoorAddress2" note="not used"/>
-                <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%d" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Open</update_state_variable>
+                <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Open</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
                         <command_string http_request_type="POST" type="character">api/services/cover/open_cover</command_string>
@@ -268,7 +267,6 @@
                             <parameter parameter_data_type="character" isHttpBody="true" action_argument="GarageDoorAddress"></parameter>
                             <parameter parameter_data_type="character" isHttpBody="true">&quot;}</parameter>
                         </parameter_list>
-                        <delay ms_delay="500"/>
                     </command>
                 </command_interface>
             </action>
@@ -278,6 +276,9 @@
                     <release_action name="OpenGarageDoor"></release_action>
                     <toggle_release_action name="CloseGarageDoor"></toggle_release_action>
                 </toggle_button_representation>
+                <query_status_with_action name="QueryGarageDoorState" period_ms="30000">
+                    <with_arg name="GarageDoorAddress" address_component="1" format="%s"/>
+                </query_status_with_action>
             </entity>
         </resource_component_actions>
 
@@ -301,7 +302,7 @@
                             <rspmessage status="success" name="HassLightOn">
                                 <constant type="character">200</constant>
                                 <root_object name="none" matches_required="at_least_one" format="json">
-                                    <values path="//state" matches_required="at_least_one">
+                                    <values path="/state" matches_required="at_least_one">
                                         <value_map match_required="yes">
                                             <map key="off">
                                                 <update state="LightPowerStatus" type="string">OFF</update>
@@ -317,6 +318,74 @@
                                 <append_data_to_state_names state="CurrentLightNumber"/>
                             </rspmessage>
                         </response_codes>
+                        <delay ms_delay="50"/>
+                    </command>
+                </command_interface>
+            </action>
+
+            <action name="QueryGarageDoorState">
+                <action_argument name="GarageDoorAddress" note="Device Number"/>
+                <update_state_variable name="CurrentGarageDoorAddress" update_type="set" update_source="action_argument">GarageDoorAddress</update_state_variable>
+                <command_interface interface="ip">
+                    <command response_required="yes">
+                        <http_header name="Content-Type">application/json</http_header>
+                        <command_string http_request_type="GET" type="character">api/states/</command_string>
+                        <parameter_list>
+                            <parameter parameter_data_type="character" isHttpBody="false" action_argument="GarageDoorAddress"/>
+                        </parameter_list>
+                        <response_codes>
+                            <rspmessage status="success" name="HassGarageDoorStatus">
+                                <constant type="character">200</constant>
+                                <root_object name="none" matches_required="at_least_one" format="json">
+                                    <values path="/state" matches_required="at_least_one">
+                                        <value_map match_required="yes">
+                                            <map key="closed">
+                                                <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Closed</update_state_variable>
+                                            </map>
+                                            <map key="open">
+                                                <update_state_variable name="GarageDoorStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="GarageDoorAddress">Open</update_state_variable>
+                                            </map>
+                                        </value_map>
+                                    </values>
+                                </root_object>
+                                <append_data_to_state_names state="CurrentGarageDoorAddress"/>
+                            </rspmessage>
+                        </response_codes>
+                        <delay ms_delay="50"/>
+                    </command>
+                </command_interface>
+            </action>
+
+            <action name="QueryDoorLockState">
+                <action_argument name="DoorLockAddress" note="Entity ID"/>
+                <update_state_variable name="CurrentDoorLockAddress" update_type="set" update_source="action_argument">DoorLockAddress</update_state_variable>
+                <command_interface interface="ip">
+                    <command response_required="yes">
+                        <http_header name="Content-Type">application/json</http_header>
+                        <command_string http_request_type="GET" type="character">api/states/</command_string>
+                        <parameter_list>
+                            <parameter parameter_data_type="character" isHttpBody="false" action_argument="DoorLockAddress"/>
+                        </parameter_list>
+                        <!-- <response_codes>
+                            <rspmessage status="success" name="HassDoorLockStatus">
+                                <constant type="character">200</constant>
+                                <root_object name="none" matches_required="at_least_one" format="json">
+                                    <values path="/state" matches_required="at_least_one">
+                                        <value_map match_required="yes">
+                                            <map key="locked">
+                                                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Locked</update_state_variable>
+                                                <update_state_variable name="IsDoorLocked_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress" type="boolean">true</update_state_variable>
+                                            </map>
+                                            <map key="unlocked">
+                                                <update_state_variable name="DoorLockStatus_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress">Unlocked</update_state_variable>
+                                                <update_state_variable name="IsDoorLocked_*" update_type="set" update_source="constant" wildcard_format="%s" wildcard_source="action_argument" wildcard_source_name="DoorLockAddress" type="boolean">false</update_state_variable>
+                                            </map>
+                                        </value_map>
+                                    </values>
+                                </root_object>
+                                <append_data_to_state_names state="CurrentDoorLockAddress"/>
+                            </rspmessage>
+                        </response_codes> -->
                         <delay ms_delay="50"/>
                     </command>
                 </command_interface>
@@ -341,7 +410,7 @@
                             <rspmessage status="success" name="HassLightOn">
                                 <constant type="character">200</constant>
                                 <root_object name="none" matches_required="at_least_one" format="json">
-                                    <values path="//state" matches_required="at_least_one">
+                                    <values path="/state" matches_required="at_least_one">
                                         <value_map match_required="yes">
                                             <map key="off">
                                                 <update state="LightPowerStatus" type="string">OFF</update>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Home" model="Assistant" alias="Home Assistant" device_class="Lighting_controller" rpm_xml_version="1.34" minimum_component_engine_version="9.2">
+<component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Home" model="Assistant" alias="Home Assistant" device_class="Lighting_controller" rpm_xml_version="1.36" minimum_component_engine_version="9.2">
     <notes>
 
     </notes>
@@ -8,7 +8,7 @@
     </component_properties>
 
     <control_interfaces preferred="ip">
-        <ip port="8123" response_time_length_ms="5000" reconnect_timeout_ms="1000" protocol="http">
+        <ip port="8123" response_time_length_ms="500" reconnect_timeout_ms="10" protocol="http">
             <http_header name="Authorization">Bearer TOKEN</http_header>
         </ip>
     </control_interfaces>
@@ -37,11 +37,9 @@
 
     <state_variable_list>
         <dynamic_state_variable name="DoorLockStatus" owning_logical_component="Home Assistant" state_center_type="string" state_center_binding="DoorLockStatus"></dynamic_state_variable>
-        <dynamic_state_variable name="IsDoorLocked" owning_logical_component="Home Assistant" state_center_type="boolean" state_center_binding="IsDoorLocked">false</dynamic_state_variable>
-
+        <dynamic_state_variable name="IsDoorLocked" owning_logical_component="Home Assistant" state_center_type="string" state_center_binding="IsDoorLocked"></dynamic_state_variable>
         <dynamic_state_variable name="GarageDoorStatus" owning_logical_component="Home Assistant" state_center_type="string" state_center_binding="GarageDoorStatus"></dynamic_state_variable>
-
-        <dynamic_state_variable name="DimmerLevel" owning_logical_component="Home Assistant" state_center_type="integer" state_center_binding="DimmerLevel" min_value="0" max_value="255"></dynamic_state_variable>
+        <dynamic_state_variable name="DimmerLevel" owning_logical_component="Home Assistant" state_center_type="string" state_center_binding="DimmerLevel" min_value="0" max_value="255"></dynamic_state_variable>
 
         <state_variable name="FanSet_0" owning_logical_component="Home Assistant" user_editable="yes" note="Fan Speed Off">0</state_variable>
         <state_variable name="FanSet_1" owning_logical_component="Home Assistant" user_editable="yes" note="Fan Speed Low">2</state_variable>
@@ -277,6 +275,12 @@
                         <unique_identifier address_component="1" name="DimmerLevel"></unique_identifier>
                     </valueSource>
                 </slider_representation>
+                <query_status_with_action name="QueryLightState" period_ms="0">
+                    <with_arg name="Address1" address_component="1" format="%s"/>
+                </query_status_with_action>
+                <query_status_with_action name="QueryLightState" period_ms="30000">
+                    <with_arg name="Address1" address_component="1" format="%s"/>
+                </query_status_with_action>
             </entity>
 
             <entity name="Switch" address_components="1">
@@ -293,6 +297,10 @@
                         <unique_identifier name="CurrentLightNumber" address_component="1"/>
                     </toggleOnUsingState>
                 </toggle_button_representation>
+                <!-- Query state immediately -->
+                <query_status_with_action name="QueryLightState" period_ms="0">
+                    <with_arg name="Address1" address_component="1" format="%s"/>
+                </query_status_with_action>
                 <query_status_with_action name="QueryLightState" period_ms="30000">
                     <with_arg name="Address1" address_component="1" format="%s"/>
                 </query_status_with_action>
